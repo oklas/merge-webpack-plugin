@@ -4,12 +4,6 @@
 
 # merge plugin for webpack
 
-Webpack plugin with loader for merge sources
-
-This plugin produce single asset for set of files. There are multiple
-assets may be produced with grouping technic. The set of files
-may be splitted to groups of set of files that produce group of assets.
-
 
 - [Install](#install)
 - [Webpack configuration](#webpack-configuration)
@@ -19,25 +13,50 @@ may be splitted to groups of set of files that produce group of assets.
 - [Grouping](#grouping)
 
 
+Webpack plugin with loader for merge sources
+
+This is **[webpack](https://webpack.js.org/)** plugin produces single asset
+for set of files or multiple assets with grouping technique. The set of files
+may be splited to groups of set of files that produce group of assets.
+
+
+**Advantages**:
+
+* deep webpack integration
+* possibility to group files by simple criterion
+* autorebuild and reload on source file change (due to deep integration)
+* files may be loaded and joined by path pattern or by call function
+  `require` or `import`
+
+
+To build internationalization locale assets consider to use also
+the **[intl-webpack-plugin](https://github.com/oklas/intl-webpack-plugin)**
+
+If need some like this merge plugin but more specifical - fork this plugin
+and read more about:
+**[join-webpack-plugin](https://github.com/oklas/join-webpack-plugin)**
+(from which this merge plugin is derived).
+
+
 ## Install
 
 ```bash
-npm install --save merge-webpack-plugin
+npm install --save-dev merge-webpack-plugin
 ```
 
 
 ## Webpack configuration
 
-This example is minimal configuration to merge json to single asset:
+This is minimal configuration to merge json into single asset:
 
 ``` javascript
 var MergePlugin = require("merge-webpack-plugin");
 module.exports = {
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.(json)$/i,
-        loaders: [
+        use: [
           MergePlugin.loader(),
           // some preloaders
         ]
@@ -56,17 +75,32 @@ module.exports = {
 ## Requiring
 
 ``` javascript
-var url = require("one-of-files.json");
-// or if preloaders specified, for example 'yaml-loader'
-var url = require("one-of-files.yaml");
+var url1 = require("one-of-files.json");
+// and/or if preloaders specified, for example 'yaml-loader'
+var url2 = require("another-file.yaml");
+require("third-file.yaml");
+// or describe files by pattern in plugin param
+
+// url1 and url2 will be same name refers to same file
+// which will also contain content of "third-file.yaml"
 ```
 
-This will return public url of file with result of merging.
-This will be same url for each file merged together.
+Same in modern syntax:
 
-Files that need to be merged must be required by `require`
-or must be prefetched by configure `search` param of
-plugin configuration.
+``` jsx
+import url1 from "one-of-files.json"
+import url2 from "another-file.yaml"
+import "third-file.yaml"
+// or describe files by pattern in plugin param
+```
+
+
+This returns public url of file with result of merging.
+This will be same url for each file merged together
+according to plugin configuration.
+
+In order to involve files into merge, files must be required by `require`
+function of `import` or configured by `search` param of plugin configuration.
 
 
 ## Plugin configuration
@@ -80,33 +114,31 @@ var MergePlugin = require("merge-webpack-plugin");
 var merge = new MergePlugin({
   search: 'glob' || ['globs',...],
   skip: 'substr' || /regexp/ || [ 'substr', /regex/, ...],
-  loaderOptions: { ...LOADER_OPTIONS }
+  group: '[name]',
+  name: '[name].[hash].[ext]',
 });
 ```
 
-Values is (bold marked is mandatory):
+Options:
 
-* **`search`** - glob pattern or patterns array to find and prefetch files
+* **`search`** - glob pattern or pattern array to find and prefetch
   see [glob](https://www.npmjs.com/package/glob) module for reference
 * `skip` - substring or regular expression or array to skip some from searched results
-* `loaderOptions` - default options for loader of this merge plugin,
-  loader options described below
+* `group` - default group loader option (see below)
+* `name` - default name loader option (see below)
 
-The `search` param is like multi-require with glob patterns.
-The `search` param is mandatory but may be empty array.
-Only files that requred by `require` function in code
+The `search` param works like multi-require with glob patterns.
+Only files that required by `require` function in code
 will be loaded in that case.
 
-Any file that does not match to `search` or `skip` param but same
-time match to loader section in webpack config and required in code
-by function `require` will be loaded and merged anyway.
+Any file that does not match to `search` or `skip` param and
+match to loader section in webpack config and is required in code
+by function `require` or `import` will be loaded and merged anyway.
 
 
 ## Loader configuration
 
-To define loader is better call loader function from same object that
-in plugin section. If multiple merge plugin or its subclasses is
-used this requirement become mandatory:
+The `loader()` method includes merge loader into loader chain.
 
 ``` javascript
 var MergePlugin = require("merge-webpack-plugin");
@@ -114,10 +146,14 @@ var theMerge = new MergePlugin({...})
 
 {
   module: {
-  loaders: [
-      theMerge.loader({group:'[name]'}),
-      // some more pre loaders
-    ],
+    rules: [
+      { test: /\.(json)$/i,
+        use: [
+          theMerge.loader({group:'[name]'}),
+         // some more pre loaders
+        ]
+      }
+    ]
   }
   plugins: [
      theMerge
@@ -126,9 +162,30 @@ var theMerge = new MergePlugin({...})
 
 ```
 
-The class function may be used when only one plugin instance
-is passed to config. Therefore it is better to use object
-form instead of class form:
+Preliminary loaders must be applied before merge loader. This means that
+merge loader must be final loader in loaders chain.
+
+Loader function waits hash of configuration options as its param.
+Default values of loader may be specified in plugin configuration
+described above.
+
+Loader options:
+
+* `group` - devides files into separated assets by specifying
+  groping pattern. May include template placeholders described
+  below in groupping section. Grouping is not applied if
+  value is not specified.
+* `name` - specifies destination asset file name. String value
+  may include template placeholders described below. Default
+  value is `[hash]`.
+
+Configuration values specified directly in `loader()` override
+same values specified as default in plugin configuration.
+
+
+The `loader()` function may be invoked as class function if only one plugin
+instance is passed to config. Therefore it is better to use object form
+instead of class form:
 
 ``` javascript
 var theMerge = new MergePlugin({...})
@@ -141,51 +198,23 @@ loaders: [
 ],
 ```
 
-Loader function wait hash of configuration options as its param:
-Default values of loader may be specified in plugin configuration
-described above.
-
-Values is:
-
-* `group` - this allow grouping of files to separated assets
-  by specifing gropping pattern, refer to interpolateName
-  [loader-utils](https://github.com/webpack/loader-utils#interpolatename)
-* `name` - same as `group` pattern for specifying destination
-  asset file name
-
-Configuration values specified directly in `loader()` override
-same values specified as default in plugin configuration.
-
 
 ## Grouping
 
-Files may be groupped by simple criteria. Grouping criteria is
+Files may be grouped by simple criterion. Grouping criterion is
 specified in `group` loader param. If `group` param is not
 specified than will be only one common group where will be 
-all files.
+all files joined togather.
 
-* to group files with same name set group param:
+Grouping criteria formed by template placeholders described
+in `interpolateName()` from [loader-utils](https://github.com/webpack/loader-utils#interpolatename) module.
+Some of that is:
 
-```
-[name]
-```
-
-* to group files with same ext set group param:
-
-```
-[ext]
-```
-
-* to group files where in each group will be files from same directory:
-
-```
-[path]
-```
+* `[name]` - to group files with same name set group param:
+* `[ext]` - to group files with same ext set group param:
+* `[path]` - to group files where each group contains files from same directory:
 
 And any derivative combinations.
-
-Groupping criteria formed by template placeholders described
-in `interpolateName()` from [loader-utils](https://github.com/webpack/loader-utils#interpolatename) module.
 
 
 ## LICENSE
