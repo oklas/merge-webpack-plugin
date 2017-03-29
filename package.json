@@ -1,7 +1,7 @@
 {
   "name": "merge-webpack-plugin",
   "version": "0.1.0",
-  "description": "Webpack plugin with loader for merge sources",
+  "description": "Webpack plugin with loader to merge sources",
   "main": "index.js",
   "repository": {
     "type": "git",
@@ -18,6 +18,7 @@
     "files",
     "emit",
     "conf",
+    "yaml",
     "config"
   ],
   "author": "Serguei Okladnikov <oklaspec@gmail.com> (https://github.com/oklas)",
@@ -40,7 +41,7 @@
   },
   "dependencies": {
     "merge": "^1.2.0",
-    "join-webpack-plugin": "^0.1.0"
+    "join-webpack-plugin": "^0.1.2"
   },
   "scripts": {
     "test": "mocha",
