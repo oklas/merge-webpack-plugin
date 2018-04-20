@@ -54,13 +54,18 @@ var MergePlugin = require("merge-webpack-plugin");
 module.exports = {
   module: {
     rules: [
-      {
-        test: /\.(json)$/i,
+      { test: /\.(json)$/i,
+        use: [
+          MergePlugin.loader()
+        ]
+      },
+      // another formats to merge is possible with loaders
+      { test: /\.(yaml)$/i,
         use: [
           MergePlugin.loader(),
-          // some preloaders
+          'yaml-loader'
         ]
-      }
+      },
     ]
   },
   plugins: [
