@@ -11,7 +11,7 @@ function MergePlugin(options) {
   };
 
   options.save = function(common) {
-    return JSON.stringify(common);
+    return JSON.stringify(common, options.sort ? Object.keys(common).sort() : null);
   };
 
   JoinPlugin.call(this,options);

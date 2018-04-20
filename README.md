@@ -115,6 +115,7 @@ var merge = new MergePlugin({
   search: 'glob' || ['globs',...],
   skip: 'substr' || /regexp/ || [ 'substr', /regex/, ...],
   group: '[name]',
+  sort: true || false, // Default false
   name: '[name].[hash].[ext]',
 });
 ```
@@ -203,7 +204,7 @@ loaders: [
 
 Files may be grouped by simple criterion. Grouping criterion is
 specified in `group` loader param. If `group` param is not
-specified than will be only one common group where will be 
+specified than will be only one common group where will be
 all files joined togather.
 
 Grouping criteria formed by template placeholders described
