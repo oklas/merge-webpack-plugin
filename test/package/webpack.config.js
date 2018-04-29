@@ -19,6 +19,7 @@ module.exports = {
   },
   plugins: [
     new MergePlugin({
+      sort: true,
       search: './src/**/*.yaml',
     })
   ]
