@@ -1,6 +1,26 @@
 var JoinPlugin = require('join-webpack-plugin');
 var merge = require("merge");
 
+function stable_stringify(value) {
+  if(value instanceof Array) {
+    return JSON.stringify( value.map( function(item) {
+      return stable_stringify(item);
+    }));
+  }
+
+  if(value instanceof Object) {
+    var keys = Object.keys(value).sort()
+    return JSON.stringify( keys.reduce( function(obj, key) {
+        obj[key] = stable_stringify(value[key]);
+        return obj;
+      }, {}),
+      keys
+   );
+  }
+
+  return JSON.stringify(value);
+}
+
 function MergePlugin(options) {
 
   options.join = function(common, addition) {
@@ -11,7 +31,8 @@ function MergePlugin(options) {
   };
 
   options.save = function(common) {
-    return JSON.stringify(common, options.sort ? Object.keys(common).sort() : null);
+    return options.sort ?
+      stable_stringify(common) : JSON.stringify(common);
   };
 
   JoinPlugin.call(this,options);
