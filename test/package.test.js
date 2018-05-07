@@ -14,8 +14,8 @@ describe("merge-webpack-plugin", function() {
   beforeEach(function() {
     baseWebpackConfig = {
       context: packageDir,
-      entry: "./index",
       output: {
+        filename: "[name].js",
         path: distDir,
         libraryTarget: "umd"
       }
@@ -31,6 +31,9 @@ describe("merge-webpack-plugin", function() {
 
   it("should merge yaml files with additional loader", function(done) {
     var webpackConfig = Object.assign({}, baseWebpackConfig, {
+      entry: {
+        "yaml-test": "./index"
+      },
       module: {
         rules: [
           {
@@ -61,7 +64,7 @@ describe("merge-webpack-plugin", function() {
       if (err) return done(err);
       if (stats.hasErrors()) return done(new Error(stats.toString()));
 
-      var bundle = require(path.join(distDir, "main.js"));
+      var bundle = require(path.join(distDir, "yaml-test.js"));
       expect(bundle.data).toMatch(/^result.\S+.yaml/);
       expect(bundle.data).toEqual(bundle.empty);
       expect(bundle.data).toEqual(bundle.target);
@@ -83,6 +86,9 @@ describe("merge-webpack-plugin", function() {
 
   it("should merge and stable sort json files", function(done) {
     var webpackConfig = Object.assign({}, baseWebpackConfig, {
+      entry: {
+        "json-sort-test": "./index"
+      },
       module: {
         rules: [
           {
@@ -113,7 +119,7 @@ describe("merge-webpack-plugin", function() {
       if (err) return done(err);
       if (stats.hasErrors()) return done(new Error(stats.toString()));
 
-      var bundle = require(path.join(distDir, "main.js"));
+      var bundle = require(path.join(distDir, "json-sort-test.js"));
       expect(bundle.a).toMatch(/^result.\S+.json$/);
       expect(bundle.a).toEqual(bundle.b);
       expect(bundle.a).toEqual(bundle.c);

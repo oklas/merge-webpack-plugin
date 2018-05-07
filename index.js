@@ -1,5 +1,6 @@
 var JoinPlugin = require('join-webpack-plugin');
 var merge = require("merge");
+var stableStringify = require("fast-json-stable-stringify");
 
 function MergePlugin(options) {
 
@@ -11,7 +12,7 @@ function MergePlugin(options) {
   };
 
   options.save = function(common) {
-    return JSON.stringify(common, options.sort ? Object.keys(common).sort() : null);
+    return options.sort ? stableStringify(common) : JSON.stringify(common);
   };
 
   JoinPlugin.call(this,options);

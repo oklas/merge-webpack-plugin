@@ -41,8 +41,9 @@
     "webpack": "1 || ^2 || ^2.1.0-beta || ^2.2.0-rc"
   },
   "dependencies": {
-    "merge": "^1.2.0",
-    "join-webpack-plugin": "^0.1.2"
+    "fast-json-stable-stringify": "^2.0.0",
+    "join-webpack-plugin": "^0.1.2",
+    "merge": "^1.2.0"
   },
   "scripts": {
     "test": "mocha",
