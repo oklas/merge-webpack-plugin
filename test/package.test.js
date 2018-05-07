@@ -80,4 +80,60 @@ describe("merge-webpack-plugin", function() {
       done();
     });
   });
+
+  it("should merge and stable sort json files", function(done) {
+    var webpackConfig = Object.assign({}, baseWebpackConfig, {
+      module: {
+        rules: [
+          {
+            test: /\.(json)$/i,
+            use: [MergePlugin.loader()]
+          }
+        ]
+      },
+      plugins: [
+        new MergePlugin({
+          sort: true,
+          search: "./src/json/*.json",
+          name: "result.[hash].[ext]"
+        })
+      ]
+    });
+
+    var indexJs = `
+    module.exports = {
+      a: require("./src/json/a.json"),
+      b: require("./src/json/b.json"),
+      c: require("./src/json/c.json"),
+      d: require("./src/json/d.json")
+    };`;
+    fs.writeFileSync(path.join(packageDir, "index.js"), indexJs);
+
+    webpack(webpackConfig, function(err, stats) {
+      if (err) return done(err);
+      if (stats.hasErrors()) return done(new Error(stats.toString()));
+
+      var bundle = require(path.join(distDir, "main.js"));
+      expect(bundle.a).toMatch(/^result.\S+.json$/);
+      expect(bundle.a).toEqual(bundle.b);
+      expect(bundle.a).toEqual(bundle.c);
+      expect(bundle.a).toEqual(bundle.d);
+
+      var mergedJSON = JSON.parse(
+        fs.readFileSync(path.join(distDir, bundle.a), "utf-8")
+      );
+      expect(mergedJSON).toEqual({
+        key1: "value1",
+        key2: "value2",
+        key3: "value3",
+        key4: {
+          nested1: "nestedValue1",
+          nested2: "nestedValue2",
+          nested3: "nestedValue3"
+        }
+      });
+
+      done();
+    });
+  });
 });
