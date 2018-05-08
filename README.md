@@ -131,7 +131,7 @@ Options:
   see [glob](https://www.npmjs.com/package/glob) module for reference
 * `skip` - substring or regular expression or array to skip some from searched results
 * `group` - default group loader option (see below)
-* `sort` - sort output by keys to avoid change `[hash]` (currently shallow keys sorting)
+* `sort` - sort output by keys to avoid change `[hash]`
 * `name` - default name loader option (see below)
 
 The `search` param works like multi-require with glob patterns.
